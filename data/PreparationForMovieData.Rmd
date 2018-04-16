@@ -1,0 +1,56 @@
+---
+title: "20180410"
+author: "zx2221 (Zhongxing Xue)"
+date: "April 10, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, echo = FALSE}
+library(Matrix)
+library(reshape2)
+
+DataTrain <- read.csv("data_train.csv")
+DataTest <- read.csv("data_test.csv")
+
+DataTrain <- DataTrain[,-1]
+DataTest <- DataTest[,-1]
+
+UserNameList <- names(table(DataTrain$User))
+UserNameNum <- length(UserNameList)
+MovieNameList <- names(table(DataTrain$Movie))
+MovieNameNum <- length(MovieNameList)
+
+DataTrain$Movie <- as.numeric(DataTrain$Movie)
+
+#transform Train Data
+TrainMatrix <- dcast(DataTrain, User ~ ...)
+MovieNameList <- names(TrainMatrix)[-1]
+UserNameList <- TrainMatrix[,1]
+TrainMatrix <- data.frame(TrainMatrix)
+TrainMatrix <- TrainMatrix[,-1]
+row.names(TrainMatrix) <- UserNameList
+colnames(TrainMatrix) <- MovieNameList
+
+save(TrainMatrix, file = "Movie_Train.RData")
+
+#transform Test Data.User:same as train data, Movie: included in train data
+TestMatrix <- dcast(DataTest, User ~ ...)
+#MovieNameList <- names(TestMatrix)[-1]
+UserNameList <- TestMatrix[,1]
+TestMatrix <- data.frame(TestMatrix)
+TestMatrix <- TestMatrix[,-1]
+row.names(TestMatrix) <- UserNameList
+colnames(TestMatrix) <- names(table(DataTest$Movie))
+
+Diff <- setdiff(MovieNameList, names(table(DataTest$Movie)))
+for (i in Diff)
+  TestMatrix[,i] <- rep(NA, nrow(TestMatrix))
+
+Order <- order(as.numeric(colnames(TestMatrix)))
+TestMatrix <- TestMatrix[,Order]
+
+save(TestMatrix, file = "Movie_Test.RData")
+
+```
