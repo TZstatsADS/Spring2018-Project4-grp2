@@ -139,3 +139,25 @@ neighbor.both <- function(weight, n, threshold){
   return(list(neighbor.index = neighborhood, coverage = coverage))
 }
 
+prediction.ms <- function(train, test, weight, top.neighbor){
+  pred.matrix <- matrix(0, nrow = nrow(train), ncol = ncol(train))
+  r.a <- apply(test, 1, mean, na.rm = T)
+  r.u <- apply(train, 1 , mean, na.rm=T)
+  test.col <- colnames(test)
+  test.row <- rownames(test)
+  for(i in 1:nrow(train)){
+    w.u.i <- weight[i, top.neighbor[[i]]]
+    r.u.i <- train[top.neighbor[[i]], ]
+    if(length(top.neighbor) == 0){
+      pred.matrix[i,] <- r.a[i]
+    } else if(length(top.neighbor) == 1){
+      pred.matrix[i,] <- r.a[i] + (r.u.i - r.u[i]) * w.u.i / sum(w.u.i, na.rm = T)
+    } else{
+      pred.matrix[i,] <- r.a[i] + apply((r.u.i - r.u[i]) * w.u.i, 2, sum, na.rm = T) / sum(w.u.i, na.rm = T)
+    }
+  }
+  colnames(pred.matrix) <- colnames(train)
+  rownames(pred.matrix) <- rownames(train)
+  pred <- pred.matrix[test.row, test.col]
+  return(pred)
+}
