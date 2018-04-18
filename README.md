@@ -15,10 +15,9 @@ Term: Spring 2018
 	
 + Project summary: Collaborative filtering refers to the process of making automatic predictions (filtering) about the interests of a user by collecting preferences or taste information from many users (collaborating). In this project, our team has applied memory-based algorithm and model-based algorithm working on the Microsoft Web Dataset and EachMovie Dataset. In the memory-based algorithm, we used Spearman correlation, Vector similarity and SimRank to calculate the similarity weight; weight threshold, best-n-estimator and combined in selecting neighbours. In the model-based algorithm, we applied cluster models. 
 
-+ Following are result analysis of different combinations of memory based algorithm: 
-	
-	
-	
++ Following are result analysis of different combinations of memory-based algorithm and model-based algorithm: 
++ ![image](figs/result.png)
++ ![image](figs/result2.png)
 	
 	
 	
