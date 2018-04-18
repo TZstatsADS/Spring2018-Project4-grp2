@@ -156,6 +156,8 @@ if (neighbor == 'combine')
 
 ## Prediction & Evaluation for Movies
 
+This paragraoh need Movie_spearman.RData and Movie_vector_similarity.RData. But These data are too big (100MB) to upload to gitHub.
+
 ···
 ```{r}
 load('../data/Movie_spearman.RData')
