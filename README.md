@@ -30,9 +30,9 @@ Term: Spring 2018
 
 - Wan, Qianhui: Similarity Weight on Spearman Similarity, Vector Similarity, MAE evaluation, Github organization
 
-- Lam, Leo: Neighbours selecting on Weight Threshold, Best-n-estimator and combined on Microsoft Web data. Ranked score evaluation. 
+- Lam, Leo: Neighbours selecting on Weight Threshold, Best-n-estimator and combined on Microsoft Web data. Ranked score evaluation. prediction function
 
-- Zhu Qianli: Neighbours selecting on Weight Threshold, Best-n-estimator and combined on EachMovie data. Presentation
+- Zhu Qianli: Neighbours selecting on Weight Threshold, Best-n-estimator and combined on EachMovie data. Prediction  function
 
 
 
