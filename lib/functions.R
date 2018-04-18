@@ -100,78 +100,12 @@ spearman <- function(X){
 
 
 
-neighbor.threshold <- function(weight, threshold){
-  neighborhood <- list()
-  coverage <- rep(0, ncol(weight))
-  for(i in 1:nrow(weight)){
-    x <- which(abs(weight[i,]) >= threshold)
-    neighborhood[[i]] <- x
-    coverage[x] <- 1
-  }
-  coverage <- length(which(coverage != 0))/ncol(weight)
-  return(list(neighbor.index = neighborhood, coverage = coverage))
-}
 
-
-neighbor.bestn <- function(weight, n){
-  neighborhood <- list()
-  coverage <- rep(0, ncol(weight))
-  for(i in 1:nrow(weight)){
-    x <- order(weight[i,], decreasing =T)[1:n]
-    neighborhood[[i]] <- x
-    coverage[x] <- 1
-  }
-  coverage <- length(which(coverage != 0))/ncol(weight)
-  return(list(neighbor.index = neighborhood, coverage = coverage))
-}
-
-
-neighbor.both <- function(weight, n, threshold){
-  neighborhood <- list()
-  coverage <- rep(0, ncol(weight))
-  for(i in 1:nrow(weight)){
-    y <- which(abs(weight[i,]) >= threshold)
-    if(length(y) >=n){
-      x <- order(weight[i,y], decreasing = T)[1:n]
-    }else{
-      x <- which(abs(weight[i,]) >= threshold) 
-    }
-    neighborhood[[i]] <- x
-    coverage[x] <- 1
-  }
-  coverage <- length(which(coverage != 0))/ncol(weight)
-  return(list(neighbor.index = neighborhood, coverage = coverage))
-}
-
-prediction.ms <- function(train, test, weight, top.neighbor){
-  pred.matrix <- matrix(0, nrow = nrow(train), ncol = ncol(train))
-  r.a <- apply(test, 1, mean, na.rm = T)
-  r.u <- apply(train, 1 , mean, na.rm=T)
-  test.col <- colnames(test)
-  test.row <- rownames(test)
-  for(i in 1:nrow(train)){
-    w.u.i <- weight[i, top.neighbor[[i]]]
-    r.u.i <- train[top.neighbor[[i]], ]
-    if(length(top.neighbor) == 0){
-      pred.matrix[i,] <- r.a[i]
-    } else if(length(top.neighbor) == 1){
-      pred.matrix[i,] <- r.a[i] + (r.u.i - r.u[i]) * w.u.i / sum(w.u.i, na.rm = T)
-    } else{
-      pred.matrix[i,] <- r.a[i] + apply((r.u.i - r.u[i]) * w.u.i, 2, sum, na.rm = T) / sum(w.u.i, na.rm = T)
-    }
-  }
-  colnames(pred.matrix) <- colnames(train)
-  rownames(pred.matrix) <- rownames(train)
-  pred <- pred.matrix[test.row, test.col]
-  return(pred)
-}
-
-
-get_weight <- function(TrainMatrix,TestMatrix,method){
+get_weight <- function(TrainMatrix,method){
   
-  Weight.mat <- matrix(NA, nrow = nrow(TestMatrix), ncol = nrow(TrainMatrix))
+  Weight.mat <- matrix(NA, nrow = nrow(TrainMatrix), ncol = nrow(TrainMatrix))
   colnames(Weight.mat) <- rownames(TrainMatrix)
-  rownames(Weight.mat) <- rownames(TestMatrix)
+  rownames(Weight.mat) <- rownames(TrainMatrix)
   
   if(method=='spearman'){
     for (i in 1:nrow(TestMatrix)){
@@ -188,10 +122,9 @@ get_weight <- function(TrainMatrix,TestMatrix,method){
   }
 
   if(method=='vectorsim'){
-    for (i in 1:nrow(TestMatrix)){
-      Weight.mat[i,] <- sapply(TrainMatrix,1,vectorsim,vec2=TextMatrix[i,])
+    for(i in 1:nrow(TrainMatrix)){
+      Weight.mat[i,] <- apply(TrainMatrix, 1, vectorsim, vec1 = TrainMatrix[i,])
     }
-
     return(Weight.mat)
     }
 
