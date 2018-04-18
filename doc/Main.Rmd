@@ -1,0 +1,44 @@
+---
+title: "Main"
+author: "Group 2 "
+date: "2018/4/15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/lib/functions.R")
+source("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/lib/data_cleaning.R")
+
+```
+
+## Data Cleaning
+
+
+
+```{r}
+dataset <- 'MS'
+
+if(dataset == 'Movie'){
+  df <- data_cleaning_Movie("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/data/RAWDATA/movie")
+}else{
+  df <- data_cleaning_MS("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/data/RAWDATA/MS")
+}
+
+
+```
+
+## Prediction 
+```{r}
+
+
+
+prediction.ms(df$df_train,df$df_test,)
+
+
+
+
+
+
+```
+
