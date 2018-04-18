@@ -1,14 +1,35 @@
 ---
 title: "Main"
-author: "Group 2 "
+author: 'Group 2 '
 date: "2018/4/15"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-source("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/lib/functions.R")
-source("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/lib/data_cleaning.R")
+packages.used=c("plyr", "hydroGOF", "readr")
+
+# check packages that need to be installed.
+packages.needed=setdiff(packages.used, 
+                        intersect(installed.packages()[,1], 
+                                  packages.used))
+# install additional packages
+if(length(packages.needed)>0){
+  install.packages(packages.needed, dependencies = TRUE)
+}
+
+library(plyr)
+library(hydroGOF)
+library(readr)
+
+
+source("../lib/functions.R")
+source("../lib/data_cleaning.R")
+source("../lib/predictions.R")
+source("../lib/movies.R")
+
 
 ```
 
@@ -17,28 +38,174 @@ source("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/lib/data_
 
 
 ```{r}
-dataset <- 'MS'
+dataset <- 'MS' # MS,Movie
+neighbor <- "best_n" # neighbor
+similarity <- 'Spearman' # vector sim
 
 if(dataset == 'Movie'){
-  df <- data_cleaning_Movie("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/data/RAWDATA/movie")
+  df <- data_cleaning_Movie("../data/data_sample/eachmovie_sample")
 }else{
-  df <- data_cleaning_MS("/Users/jiangyiran/Documents/GitHub/Spring2018-Project4-group-2/data/RAWDATA/MS")
+  df <- data_cleaning_MS("../data/data_sample/MS_sample")
+}
+
+
+
+```
+
+## Prediction for MS
+
+#### Spearman Correlation
+```{r}
+##Takes long time
+#this.method <- 'spearman'  ##spearman,vectorsim,simrank
+#this.weight <- get_weight(df$df_train,method = this.method)
+if(dataset == 'MS' & similarity == 'Spearman'){
+
+##MS
+##Load in the data
+load('../data/MS_spearman.RData')
+this.weight <- w
+
+#spearman - threshold
+if (neighbor == 'threshold')
+  spearman_threshold(this.weight,df$df_train,df$df_test)
+
+
+#spearman - best n
+if (neighbor == 'best_n')
+  spearman_best_n(this.weight,df$df_train,df$df_test)
+
+
+#spearman - combined
+if (neighbor == 'combine')
+  spearman_combined(this.weight,df$df_train,df$df_test)
+
+
+}
+
+```
+
+#### Vector Similarity
+```{r}
+##Takes long time
+#this.method <- 'vectorsim'  ##spearman,vectorsim,simrank
+#this.weight <- get_weight(df$df_train,method = this.method)
+
+if(dataset == 'MS' & similarity == 'Vectorsim'){
+
+##MS
+##Load in the data
+load('../data/MS_vector_similarity.RData')
+this.weight <- vector_similarity_Matrix_trainTrain
+
+#vectorsim - threshold
+if (neighbor == 'threshold')
+  vectorsim_threshold(this.weight,df$df_train,df$df_test)
+
+
+#vectorsim - best n
+if (neighbor == 'best_n')
+  vectorsim_best_n(this.weight,df$df_train,df$df_test)
+
+
+
+#vectorsim - combined
+#if (neighbor == 'combine')
+  #vectorsim_combined(this.weight,df$df_train,df$df_test)
+
+
+
+}
+
+
+
+```
+
+#### Simrank
+
+```{r}
+##Takes long time
+#this.method <- 'simrank'  ##spearman,vectorsim,simrank
+#this.weight <- get_weight(df$df_train,method = this.method)
+
+if(dataset == 'MS' & similarity == 'simrank'){
+
+##MS
+##Load in the data
+load('../data/MS_simrank.RData')
+this.weight <- sim_weight
+
+#simrank - threshold
+if (neighbor == 'threshold')
+  simrank_threshold(this.weight,df$df_train,df$df_test)
+
+
+#simrank - best n
+if (neighbor == 'best_n')
+  simrank_best_n(this.weight,df$df_train,df$df_test)
+
+
+#simrank - combined
+if (neighbor == 'combine')
+  simrank_combined(this.weight,df$df_train,df$df_test)
+
+
+}
+
+```
+
+## Prediction & Evaluation for Movies
+
+···
+```{r}
+load('../data/Movie_spearman.RData')
+load('../data/Movie_vector_similarity.RData')
+
+
+if(dataset == 'Movies'){
+
+# choose one
+this.weight <- Spearman_mat
+##or
+this.weight <- vector_similarity_Movie_normalize
+
+## choose one
+#####prediction################################
+user.list <- rownames(df$df_test)
+arg = list(threshold = NULL,n = NULL,  method = "threshold")  
+
+
+
+
+##selection for find.neighbor function: threshold: value ~ [0,1], n = number,  method： threshold, best.n, combine
+
+prediction.result <- lapply(user.list, predic.func, arg = arg, Weight.mat =this.weight)
+##selection for predic.func function: 
+#1.user.id = user's id number
+#2.test.data = TestMatrix, default setting as test.data
+#3.train.data = TrainMatrix, default setting as train.data  
+#4.Weight.mat = Spearman_mat, default setting as Spearman correlation,
+#                             selection: Spearman_mat, vector_similarity_Movies_norm
+
+#since prediction.result is a list of data.frame, use rbind.fill() to combine all the data.frame in the list as one data frame
+prediction.matrix  <- rbind.fill(prediction.result)
+
+#write.csv(prediction.matrix, file = "prediction.matrix.csv"))
+
+#####Evaluation###################################
+
+#process to reorder each user's item in ascending order
+test.orginal <- read.csv("../data/data_sample/eachmovie_sample/data_test.csv")
+test.orginal <- tes[,-1]
+test.orginal <- with(test.orginal, test.orginal[order(User, Movie),])
+
+#calculate mae
+mae(prediction.matrix$prediction, tes$Score)
+
+
 }
 
 
 ```
 
-## Prediction 
-```{r}
-
-
-
-prediction.ms(df$df_train,df$df_test,)
-
-
-
-
-
-
-```
-
+cluter model: please look C++ code.
