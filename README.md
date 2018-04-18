@@ -1,6 +1,7 @@
 # Project 4: Collaborative Filtering
 
 ![image](figs/recommend.jpg)
+
 Term: Spring 2018
 
 + Team # 2
