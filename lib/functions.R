@@ -1,4 +1,4 @@
-simRank <- function(data,user1,user2,C,k){
+simRank <- function(data,C =0.8,k=5){
   cal_sim <- function(ui,uj,method,C){
     calsum <- 0
     if(method == 'item'){
@@ -45,7 +45,8 @@ simRank <- function(data,user1,user2,C,k){
     }
     return(result)      
   }
-  
+
+
   simuser <- diag(rep(1,nrow(data)))
   simitem <- diag(rep(1,ncol(data)))
   
@@ -67,9 +68,10 @@ simRank <- function(data,user1,user2,C,k){
     }
     simuser <- newsimuser
     simitem <- newsimitem
+    print(k)
   }
   
-  return(simuser[user1,user2])
+  return(simuser)
 }
 
 
@@ -77,11 +79,13 @@ vectorsim <- function(vec1,vec2){
   if(is.null(vec1) == TRUE){
     return(0)
   }else{
-    n1 <- norm(vec1, type = "2")
-    n2 <- norm(vec2, type = "2")
-    ip <- t(vec1) %*% vec2
-    vs <- ip/(n1*n2)
-    return(vs[1])
+    inter <- intersect(which(!is.na(vec1)), which(!is.na(vec2)))
+    if (length(inter) == 0) {
+      return(0)
+    }
+    else{
+      return(cosine(as.numeric(vec1[inter]),as.numeric(vec2[inter])))
+    }
   }
 }
 
@@ -160,4 +164,52 @@ prediction.ms <- function(train, test, weight, top.neighbor){
   rownames(pred.matrix) <- rownames(train)
   pred <- pred.matrix[test.row, test.col]
   return(pred)
+}
+
+
+get_weight <- function(TrainMatrix,TestMatrix,method){
+  
+  Weight.mat <- matrix(NA, nrow = nrow(TestMatrix), ncol = nrow(TrainMatrix))
+  colnames(Weight.mat) <- rownames(TrainMatrix)
+  rownames(Weight.mat) <- rownames(TestMatrix)
+  
+  if(method=='spearman'){
+    for (i in 1:nrow(TestMatrix)){
+      Weight.mat[i,] <- as.numeric(apply(TrainMatrix, 1, cor, y = as.numeric(TrainMatrix[i,]), method = "spearman", use = "pairwise.complete.obs"))
+    }
+    replace.na  <- function(vec){
+      index <- which(is.na(vec))
+      vec[index] <- 0
+      return(vec)
+    }
+    Weight.mat <- apply(Weight.mat, 1, replace.na)
+    return(Weight.mat)
+    
+  }
+
+  if(method=='vectorsim'){
+    for (i in 1:nrow(TestMatrix)){
+      Weight.mat[i,] <- sapply(TrainMatrix,1,vectorsim,vec2=TextMatrix[i,])
+    }
+
+    return(Weight.mat)
+    }
+
+  
+  
+  if(method=='simrank'){
+    replace.na  <- function(vec){
+      index <- which(is.na(vec))
+      vec[index] <- 0
+      return(vec)
+    }
+    
+    for(i in 1:nrow(TrainMatrix)){
+      TrainMatrix[i,] <- replace.na(TrainMatrix[i,])
+    }
+    
+    Weight.mat <- simRank(TrainMatrix,C =0.8,k=3)
+    return(Weight.mat)
+    
+  }
 }
